@@ -25,3 +25,19 @@ yarn-error.log*
 
 # OS
 .DS_Store
+
+# Testing
+/coverage
+
+# Production
+/build
+
+# Typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Misc
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local   
