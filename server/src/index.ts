@@ -1,45 +1,54 @@
 import express from 'express';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
 import mongoose from 'mongoose';
-import cors from 'cors';
 import dotenv from 'dotenv';
+import cors from 'cors';
+import authRoutes from './routes/auth';
+import teamRoutes from './routes/teams';
 
 dotenv.config();
 
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
-    methods: ['GET', 'POST']
-  }
-});
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/valorant-team-finder')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('MongoDB connection error:', err));
-
-// Basic route
-app.get('/', (req, res) => {
-  res.send('Valorant Team Finder API');
+// Basic route for testing
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
 });
 
-// Socket.IO connection handling
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/teams', teamRoutes);
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
+// Error handling
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 5000;
-httpServer.listen(PORT, () => {
+const PORT = process.env.PORT || 3000;
+
+// Start server
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  
+  // Connect to MongoDB
+  mongoose.connect(process.env.MONGODB_URI!)
+    .then(() => console.log('Connected to MongoDB Atlas'))
+    .catch(err => {
+      console.error('MongoDB connection error:', err);
+      process.exit(1);
+    });
+});
+
+// Handle server errors
+server.on('error', (error: NodeJS.ErrnoException) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use`);
+  } else {
+    console.error('Server error:', error);
+  }
+  process.exit(1);
 }); 
