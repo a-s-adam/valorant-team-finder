@@ -59,8 +59,8 @@ const Login = () => {
             </Text>
           </Stack>
           <Box
+            variant="form"
             rounded="lg"
-            bg="white"
             boxShadow="lg"
             p={8}
             as="form"
