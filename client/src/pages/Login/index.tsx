@@ -10,6 +10,7 @@ import {
   Container,
   Heading,
   Link,
+  useColorMode,
 } from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -59,7 +60,7 @@ const Login = () => {
             </Text>
           </Stack>
           <Box
-            variant="form"
+            bg={useColorMode().colorMode === 'dark' ? '#141B24' : 'white'}
             rounded="lg"
             boxShadow="lg"
             p={8}

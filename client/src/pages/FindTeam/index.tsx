@@ -14,26 +14,38 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../../services/api';
 import TeamCard from '../../components/TeamCard';
 
+interface Team {
+  _id: string;
+  name: string;
+  leader: {
+    _id: string;
+    username: string;
+  };
+  members: Array<{
+    _id: string;
+    username: string;
+  }>;
+  rankRequirement: string;
+  description: string;
+}
+
 const FindTeam = () => {
   const [rankFilter, setRankFilter] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const toast = useToast();
 
-  const { data: teams, isLoading } = useQuery({
+  const { data: teams, isLoading } = useQuery<Team[]>({
     queryKey: ['teams', rankFilter, roleFilter],
     queryFn: async () => {
       try {
-        const params = new URLSearchParams();
-        if (rankFilter) params.append('rank', rankFilter);
-        if (roleFilter) params.append('role', roleFilter);
-        const { data } = await api.get(`/teams?${params.toString()}`);
+        const { data } = await api.get('/teams');
         return data;
       } catch (error) {
         toast({
           title: 'Error',
           description: 'Failed to fetch teams',
           status: 'error',
-          duration: 3000,   
+          duration: 3000,
           isClosable: true,
         });
         throw error;
@@ -86,8 +98,17 @@ const FindTeam = () => {
           <Spinner size="xl" />
         ) : (
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
-            {teams?.map((team: any) => (
-              <TeamCard key={team.id} team={team} />
+            {teams?.map((team: Team) => (
+              <TeamCard 
+                key={team._id}
+                team={{
+                  id: team._id,
+                  name: team.name,
+                  rankRequirement: team.rankRequirement,
+                  description: team.description,
+                  members: team.members.map(m => m._id)
+                }} 
+              />
             ))}
           </SimpleGrid>
         )}

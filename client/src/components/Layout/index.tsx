@@ -1,5 +1,5 @@
 import { Box } from '@chakra-ui/react';
-import Navbar from '../Navbar';
+import Navbar from '../Navbar/index';
 import Footer from '../Footer';
 
 interface LayoutProps {
@@ -10,7 +10,13 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <Box minH="100vh" display="flex" flexDirection="column">
       <Navbar />
-      <Box flex="1" as="main" py={8} px={4}>
+      <Box 
+        as="main" 
+        flex="1" 
+        marginTop="64px"
+        px={4} 
+        py={8}
+      >
         {children}
       </Box>
       <Footer />

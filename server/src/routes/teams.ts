@@ -1,6 +1,7 @@
 import express from 'express';
 import Team from '../models/Team';
 import { auth } from '../middleware/auth';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
@@ -38,23 +39,56 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get team by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const team = await Team.findById(req.params.id)
+      .populate('leader', 'username mainRole rank')
+      .populate('members', 'username mainRole rank');
+    
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+    
+    res.json(team);
+  } catch (error) {
+    console.error('Get team error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Join team
 router.post('/:id/join', auth, async (req, res) => {
   try {
+    if (!req.user?.userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
     const team = await Team.findById(req.params.id);
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
     }
 
-    if (team.members.includes(req.user?.userId as any)) {
+    // Check if user is already a member
+    const memberId = new mongoose.Types.ObjectId(req.user.userId);
+    const isMember = team.members.some(id => id.equals(memberId));
+    
+    if (isMember) {
       return res.status(400).json({ error: 'Already a member of this team' });
     }
 
-    team.members.push(req.user?.userId as any);
+    // Add member and save
+    team.members.push(memberId);
     await team.save();
 
-    res.json(team);
+    // Return populated team data
+    const updatedTeam = await Team.findById(team._id)
+      .populate('leader', 'username')
+      .populate('members', 'username');
+      
+    res.json(updatedTeam);
   } catch (error) {
+    console.error('Join team error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

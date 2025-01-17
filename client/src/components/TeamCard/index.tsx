@@ -27,7 +27,10 @@ const TeamCard = ({ team }: TeamCardProps) => {
   const queryClient = useQueryClient();
 
   const joinTeamMutation = useMutation({
-    mutationFn: (teamId: string) => api.post(`/teams/${teamId}/join`),
+    mutationFn: async (teamId: string) => {
+      const response = await api.post(`/teams/${teamId}/join`);
+      return response.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] });
       toast({
@@ -38,10 +41,10 @@ const TeamCard = ({ team }: TeamCardProps) => {
         isClosable: true,
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: 'Error',
-        description: 'Failed to join team',
+        description: error.response?.data?.error || 'Failed to join team',
         status: 'error',
         duration: 3000,
         isClosable: true,

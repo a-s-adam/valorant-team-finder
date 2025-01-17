@@ -2,92 +2,153 @@ import {
   Box,
   Flex,
   Button,
-  useColorModeValue,
-  Stack,
-  useColorMode,
   Container,
-  IconButton,
-  useDisclosure,
   HStack,
+  useColorMode,
+  IconButton,
+  Avatar,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
-  Avatar,
+  Center,
 } from '@chakra-ui/react';
-import { MoonIcon, SunIcon, HamburgerIcon, CloseIcon } from '@chakra-ui/icons';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { MoonIcon, SunIcon } from '@chakra-ui/icons';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
 
 const Navbar = () => {
   const { colorMode, toggleColorMode } = useColorMode();
-  const { isOpen, onToggle } = useDisclosure();
   const { user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
-  };
+  const isActive = (path: string) => location.pathname === path;
+
+  const NavButton = ({ to, children }: { to: string; children: React.ReactNode }) => (
+    <Button
+      as={RouterLink}
+      to={to}
+      variant="ghost"
+      className={`nav-link ${isActive(to) ? 'active' : ''}`}
+      position="relative"
+      px={4}
+      py={2}
+      fontSize="md"
+      fontWeight="500"
+      color={colorMode === 'dark' ? 'white' : 'gray.700'}
+      _hover={{
+        bg: 'transparent',
+        color: colorMode === 'dark' ? 'brand.200' : 'brand.500',
+      }}
+      _active={{
+        bg: 'transparent',
+      }}
+      _after={{
+        content: '""',
+        position: 'absolute',
+        bottom: '0',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: isActive(to) ? '100%' : '0',
+        height: '2px',
+        bg: colorMode === 'dark' ? 'brand.200' : 'brand.500',
+        transition: 'all 0.3s ease',
+      }}
+    >
+      {children}
+    </Button>
+  );
 
   return (
-    <Box bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
+    <Box 
+      py={4} 
+      sx={{
+        position: 'fixed !important',
+        top: '0 !important',
+        zIndex: '9999 !important',
+        width: '100%',
+        backdropFilter: 'blur(10px)',
+      }}
+      borderBottom="1px" 
+      borderColor={colorMode === 'dark' ? 'gray.700' : 'gray.200'}
+      bg={colorMode === 'dark' ? '#141B24' : 'white'}
+      position="fixed"
+      top={0}
+      left={0}
+      right={0}
+      width="100%"
+      zIndex={9999}
+      backdropFilter="blur(10px)"
+      boxShadow="md"
+    >
       <Container maxW="container.xl">
-        <Flex h={16} alignItems="center" justifyContent="space-between">
-          <IconButton
-            size="md"
-            icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
-            aria-label="Open Menu"
-            display={{ md: 'none' }}
-            onClick={onToggle}
-          />
-          <HStack spacing={8} alignItems="center">
-            <Box fontWeight="bold" as={RouterLink} to="/">
-              ValorantTeamFinder
-            </Box>
-            <HStack as="nav" spacing={4} display={{ base: 'none', md: 'flex' }}>
-              <Button as={RouterLink} to="/find-team" variant="ghost">
-                Find Team
-              </Button>
-              <Button as={RouterLink} to="/teams" variant="ghost">
-                Teams
-              </Button>
-            </HStack>
-          </HStack>
-          <Flex alignItems="center">
-            <Stack direction="row" spacing={7}>
-              <Button onClick={toggleColorMode}>
-                {colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
-              </Button>
+        <Flex position="relative" align="center" height="40px">
+          <Box position="absolute" left={0} fontWeight="bold" fontSize="xl">
+            VTF
+          </Box>
 
+          <Center flex="1">
+            <HStack spacing={8}>
+              <NavButton to="/">Home</NavButton>
+              <NavButton to="/find-team">Find Team</NavButton>
+              <NavButton to="/profile">Profile</NavButton>
+            </HStack>
+          </Center>
+
+          <Box position="absolute" right={0}>
+            <HStack spacing={4}>
+              <IconButton
+                icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
+                onClick={toggleColorMode}
+                aria-label="Toggle color mode"
+                variant="ghost"
+                _hover={{
+                  bg: colorMode === 'dark' ? 'whiteAlpha.200' : 'blackAlpha.100',
+                }}
+              />
+              
               {user ? (
                 <Menu>
-                  <MenuButton
-                    as={Button}
-                    rounded="full"
-                    variant="link"
-                    cursor="pointer"
-                    minW={0}
-                  >
-                    <Avatar size="sm" name={user.username} />
+                  <MenuButton>
+                    <Avatar 
+                      size="sm" 
+                      name={user.username}
+                      cursor="pointer"
+                      _hover={{ 
+                        transform: 'scale(1.05)',
+                        transition: 'all 0.2s ease'
+                      }}
+                    />
                   </MenuButton>
                   <MenuList>
                     <MenuItem as={RouterLink} to="/profile">
                       Profile
                     </MenuItem>
-                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                    <MenuItem onClick={() => dispatch(logout())}>
+                      Logout
+                    </MenuItem>
                   </MenuList>
                 </Menu>
               ) : (
-                <Button as={RouterLink} to="/login">
+                <Button 
+                  as={RouterLink} 
+                  to="/login" 
+                  colorScheme="brand"
+                  size="sm"
+                  _hover={{
+                    transform: 'translateY(-2px)',
+                    boxShadow: 'lg',
+                  }}
+                  transition="all 0.2s ease"
+                >
                   Sign In
                 </Button>
               )}
-            </Stack>
-          </Flex>
+            </HStack>
+          </Box>
         </Flex>
       </Container>
     </Box>

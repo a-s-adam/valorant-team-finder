@@ -130,6 +130,13 @@ const theme = extendTheme({
           boxShadow: props.colorMode === 'dark' ? '0 4px 6px rgba(0, 0, 0, 0.4)' : 'lg',
           p: 8,
         }),
+        navbar: {
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 9999,
+        }
       },
     },
   },
